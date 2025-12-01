@@ -3,9 +3,9 @@ import { connectDatabase } from '../../config/db.config';
 import Appointment from '../../models/Appointment';
 import mongoose from 'mongoose';
 import { sendMeetingInvite } from '../../utils/googleCalendarHelper';
+import { notificationService } from '../notifications/notification.service';
 
 dotenv.config();
-
 interface AppointmentParameter {
   id_fixer: string;
   id_requester: string;
@@ -21,7 +21,7 @@ interface AppointmentParameter {
   display_location_name?: string;
   lat?: string;
   lon?: string;
-  mail: string[] | string; // ← aceptamos también string
+  mail: string[] | string;
   cancelled_fixer?: boolean;
   reprogram_reason?: string;
   googleEventId?: string;
@@ -96,12 +96,36 @@ export async function create_appointment(current_appointment: AppointmentParamet
     };
 
     let appointment = null;
+    let savedAppointmentData = null;
 
     if (!exists || (exists && exists.cancelled_fixer)) {
       await syncWithGoogle();
 
       appointment = new Appointment(current_appointment);
-      await appointment.save();
+      savedAppointmentData = await appointment.save();
+
+      // Enviar notificaciones
+      if (savedAppointmentData) {
+        try {
+          const requesterParaNotificar = {
+            ...existingRequester,
+            name: current_appointment.current_requester_name,
+            phone: current_appointment.current_requester_phone,
+          };
+
+          await notificationService.sendAppointmentConfirmation(
+            existingFixer,
+            requesterParaNotificar,
+            savedAppointmentData
+          );
+        } catch (notificationError) {
+          console.error("===================================");
+          console.error("🚨 ERROR AL ENVIAR NOTIFICACIÓN (la cita SÍ se guardó) 🚨");
+          console.error((notificationError as Error).message);
+          console.error("===================================");
+        }
+      }
+
       return { result: true, message_state: 'Cita creada correctamente.' };
     } else if (exists && exists.schedule_state === 'cancelled') {
       await syncWithGoogle();
@@ -109,11 +133,33 @@ export async function create_appointment(current_appointment: AppointmentParamet
       const id_appointmente_exists = exists._id;
       current_appointment.schedule_state = 'booked';
       current_appointment.reprogram_reason = '';
-      await Appointment.findByIdAndUpdate(
+      savedAppointmentData = await Appointment.findByIdAndUpdate(
         id_appointmente_exists,
         { $set: current_appointment },
         { new: true },
       );
+
+      // Enviar notificaciones
+      if (savedAppointmentData) {
+        try {
+          const requesterParaNotificar = {
+            ...existingRequester,
+            name: current_appointment.current_requester_name,
+            phone: current_appointment.current_requester_phone,
+          };
+
+          await notificationService.sendAppointmentConfirmation(
+            existingFixer,
+            requesterParaNotificar,
+            savedAppointmentData
+          );
+        } catch (notificationError) {
+          console.error("===================================");
+          console.error("🚨 ERROR AL ENVIAR NOTIFICACIÓN (la cita SÍ se guardó) 🚨");
+          console.error((notificationError as Error).message);
+          console.error("===================================");
+        }
+      }
 
       return { result: true, message_state: 'Cita creada correctamente.' };
     } else {
