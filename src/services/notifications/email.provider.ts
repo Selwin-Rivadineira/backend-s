@@ -22,7 +22,7 @@ export class EmailProvider {
       },
     });
 
-    this.verifyConnection();
+    //this.verifyConnection();
   }
 
   // 2. Verificamos la conexión al iniciar (sin cambios en la lógica interna)
