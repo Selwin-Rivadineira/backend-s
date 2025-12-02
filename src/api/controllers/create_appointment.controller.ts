@@ -1,3 +1,5 @@
+// src/api/controllers/create_appointment.controller.ts
+
 import 'express';
 import { Request, Response } from 'express';
 import * as CreateAppointmentService from '../../services/appointment/create_appointment.service';
@@ -21,6 +23,7 @@ export async function createAppointment(req: Request, res: Response) {
         .json({ success: false, message: 'Parametros insuficientes en el body.' });
     }
 
+    // Llama al servicio. El servicio usa 'appointmentData.reprogram_reason' internamente para suprimir la notificación.
     const { result, message_state } =
       await CreateAppointmentService.create_appointment(appointmentData);
 

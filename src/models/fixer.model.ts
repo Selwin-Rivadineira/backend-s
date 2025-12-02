@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
+import mongoose, { Schema, Document, Types, Model } from 'mongoose';
 
 export interface IExperience {
   id: string;
@@ -57,7 +57,19 @@ const UserSchema = new Schema<IUser>(
       photoUrl: { type: String },
     },
   },
-  { collection: 'users', timestamps: true }
+  { collection: 'users', timestamps: true },
 );
 
-export const UserModel = mongoose.model<IUser>('User', UserSchema);
+// ⚠️ CORRECCIÓN CLAVE: Exportar el modelo de Mongoose usando el patrón de cacheo
+const MODEL_NAME = 'User';
+
+export const UserModel: Model<IUser> =
+  (mongoose.models[MODEL_NAME] as Model<IUser>) ||
+  mongoose.model<IUser>(MODEL_NAME, UserSchema);
+
+// Exportamos por defecto para facilitar la importación en otros servicios
+export default UserModel;
+
+// Exportamos la interfaz IUser ya que se necesita para tipado
+// (No es necesario exportar IExperience y IFixerProfile si solo se usan localmente)
+export type IFixer = IUser; // Definimos IFixer como un alias de IUser para mantener la convención del código

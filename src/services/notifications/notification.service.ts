@@ -3,7 +3,7 @@
 import { EmailProvider } from './email.provider';
 import { WhatsAppProvider } from './whatsapp.provider';
 
-// funcion pra extraer fecha y hora en formato localizado  no borrar pe cjuds
+// funcion pra extraer fecha y hora en formato localizado
 function formatLocalizedDateTime(isoString: string | Date): string {
   if (!isoString) return '[No especificada]';
   const date = new Date(isoString);
@@ -23,19 +23,16 @@ function formatLocalizedDateTime(isoString: string | Date): string {
 
 
 class NotificationService {
-  private emailProvider: EmailProvider;
-  private whatsappProvider: WhatsAppProvider; 
+  // 🎯 CAMBIO CLAVE: Cambiar de 'private' a 'public' para permitir acceso
+  public emailProvider: EmailProvider;
+  public whatsappProvider: WhatsAppProvider; 
 
   constructor() {
     this.emailProvider = new EmailProvider();
     this.whatsappProvider = new WhatsAppProvider(); 
   }
 
-  // funcion para enviar notificaciones de confirmacion de citas pueden crearse otra funcion para notificar
-  // cancelaciones o reprogramaciones
-  // o siquieren refactorizar esta funcion para que sea mas generica xd
-  // pst: si se crean una nueva fucion no se olviden de llamarla en el servicio correspondiente
-
+  // funcion para enviar notificaciones de confirmacion de citas
   public async sendAppointmentConfirmation(
     fixer: any, 
     requester: any, 

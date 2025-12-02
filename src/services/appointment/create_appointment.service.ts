@@ -1,3 +1,5 @@
+// src/services/appointment/create_appointment.service.ts
+
 import * as dotenv from 'dotenv';
 import { connectDatabase } from '../../config/db.config';
 import Appointment from '../../models/Appointment';
@@ -6,6 +8,7 @@ import { sendMeetingInvite } from '../../utils/googleCalendarHelper';
 import { notificationService } from '../notifications/notification.service';
 
 dotenv.config();
+
 interface AppointmentParameter {
   id_fixer: string;
   id_requester: string;
@@ -23,13 +26,22 @@ interface AppointmentParameter {
   lon?: string;
   mail: string[] | string;
   cancelled_fixer?: boolean;
-  reprogram_reason?: string;
+  reprogram_reason?: string; // Campo utilizado para detección
   googleEventId?: string;
 }
 
-export async function create_appointment(current_appointment: AppointmentParameter) {
+export async function create_appointment(
+  current_appointment: AppointmentParameter
+) {
   try {
     await connectDatabase();
+
+    // 🎯 CHEQUEO DEFENSIVO: Si la razón de reprogramación está presente, se suprime la notificación de "Cita Agendada".
+    const isReprogrammingFlow = !!current_appointment.reprogram_reason; 
+    if (isReprogrammingFlow) {
+        console.warn("[Creation Service] Reprogramming reason detected. Suppressing default appointment confirmation notification.");
+    }
+    // FIN DEL CHEQUEO DEFENSIVO
 
     const requester_id = current_appointment.id_requester;
     const fixer_id = current_appointment.id_fixer;
@@ -55,7 +67,7 @@ export async function create_appointment(current_appointment: AppointmentParamet
     const existingFixer = await db.collection('users').findOne({
       _id: formated_id_fixer,
     });
-    if (!existingFixer || existingFixer.role !== 'fixer') {
+    if (!existingFixer || existingFixer.role !== 'fixer') { 
       return { result: false, message_state: 'Fixer no encontrado.' };
     }
 
@@ -105,7 +117,8 @@ export async function create_appointment(current_appointment: AppointmentParamet
       savedAppointmentData = await appointment.save();
 
       // Enviar notificaciones
-      if (savedAppointmentData) {
+      // 🎯 SÓLO ENVIAR SI NO ES UN FLUJO DE REPROGRAMACIÓN CONFLICTIVO
+      if (savedAppointmentData && !isReprogrammingFlow) { 
         try {
           const requesterParaNotificar = {
             ...existingRequester,
@@ -140,7 +153,8 @@ export async function create_appointment(current_appointment: AppointmentParamet
       );
 
       // Enviar notificaciones
-      if (savedAppointmentData) {
+      // 🎯 SÓLO ENVIAR SI NO ES UN FLUJO DE REPROGRAMACIÓN CONFLICTIVO
+      if (savedAppointmentData && !isReprogrammingFlow) { 
         try {
           const requesterParaNotificar = {
             ...existingRequester,
