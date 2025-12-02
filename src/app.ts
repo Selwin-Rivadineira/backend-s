@@ -4,7 +4,7 @@ dotenv.config({ path: '.env' });
 import express from 'express';
 import cors from 'cors';
 import { connectDatabase } from './config/db.config';
-import mongoose from 'mongoose'; // <--- FIX 1: Importar mongoose
+import mongoose from 'mongoose';
 
 import jobOfertRoutes from './api/routes/jobOfert.routes';
 import newoffersRoutes from './api/routes/newOffers.routes';
@@ -42,44 +42,41 @@ import Search from './models/search.model';
 
 const app = express();
 
+// --- CORRECCIÓN CORS ---
+// Usamos '*' para permitir que CUALQUIER frontend (Vercel, local, etc) se conecte.
+// Esto soluciona el problema de "no me da datos".
 app.use(
   cors({
-    origin: [
-      'https://devmasters-servineo-frontend-zk3q.vercel.app',
-      'http://localhost:8080',
-      'http://localhost:8081',
-      'http://localhost:3000',
-    ],
+    origin: '*', 
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }),
 );
+// -----------------------
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- FIX 1: RUTAS BASE PARA TESTING Y HEALTHCHECK ---
+// --- RUTAS BASE ---
 app.get('/', (req, res) => {
-  // Usamos mongoose.connection.readyState para verificar el estado de la DB
-  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
-  res.status(200).json({
-    message: 'Servineo API',
-    status: 'running',
-    database: dbStatus
-  });
+  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    message: 'Servineo API',
+    status: 'running',
+    database: dbStatus
+  });
 });
 
 app.get('/api/health', (req, res) => {
-  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
-  res.status(200).json({
-    status: 'ok',
-    database: dbStatus,
-    timestamp: new Date().toISOString()
-  });
+  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    status: 'ok',
+    database: dbStatus,
+    timestamp: new Date().toISOString()
+  });
 });
-// ---------------------------------------------------
-
+// -------------------
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
@@ -113,7 +110,7 @@ app.use('/auth', githubAuthRouter);
 app.use('/auth', discordRoutes);
 app.use('/api/controlC/cliente', clienteRouter);
 app.use('/api/user', routerUser);
-app.use('/api/location', LocationRoutes);
+app.use('/api/location', LocationRoutes);a
 app.use('/api/crud_create', CreateRoutes);
 app.use('/api/crud_read', ReadRoutes);
 app.use('/api/crud_update', UpdateRoutes);
