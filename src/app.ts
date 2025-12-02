@@ -6,6 +6,7 @@ import cors from 'cors';
 import { connectDatabase } from './config/db.config';
 import mongoose from 'mongoose';
 
+// Importación de rutas
 import jobOfertRoutes from './api/routes/jobOfert.routes';
 import newoffersRoutes from './api/routes/newOffers.routes';
 import fixerRoutes from './api/routes/fixer.routes';
@@ -38,29 +39,28 @@ import clienteRouter from '../src/api/routes/userManagement/cliente.routes';
 import obtenerContrasenaRouter from '../src/api/routes/userManagement/obtener.routes';
 import portfolioRoutes from '../src/routes/portfolio.routes';
 import routerUser from './api/routes/user.routes';
-import Search from './models/search.model';
+// import Search from './models/search.model'; // No se usa y puede causar warnings
 
 const app = express();
 
-// --- CORRECCIÓN CORS ---
-// Usamos '*' para permitir que CUALQUIER frontend (Vercel, local, etc) se conecte.
-// Esto soluciona el problema de "no me da datos".
+// --- CONFIGURACIÓN DE CORS ---
 app.use(
   cors({
-    origin: '*', 
+    origin: '*', // Permitir todo para evitar problemas de conexión iniciales
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }),
 );
-// -----------------------
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// --- RUTAS BASE ---
+// --- RUTAS DE HEALTH CHECK (Para que Render sepa que estamos vivos) ---
 app.get('/', (req, res) => {
-  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
+  const dbState = mongoose.connection.readyState;
+  const dbStatus = dbState === 1 ? 'connected' : 'disconnected';
+  
   res.status(200).json({
     message: 'Servineo API',
     status: 'running',
@@ -69,21 +69,21 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
+  const dbState = mongoose.connection.readyState;
   res.status(200).json({
     status: 'ok',
-    database: dbStatus,
+    database: dbState === 1 ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString()
   });
 });
-// -------------------
 
+// Middleware de logs
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// -- Rutas de la aplicación --
+// --- DEFINICIÓN DE RUTAS ---
 app.use('/api', searchRoutes);
 app.use('/api/devmaster', jobOfertRoutes);
 app.use('/api/newOffers', newoffersRoutes);
@@ -109,16 +109,16 @@ app.use('/api/controlC/obtener-password', obtenerContrasenaRouter);
 app.use('/auth', githubAuthRouter);
 app.use('/auth', discordRoutes);
 app.use('/api/controlC/cliente', clienteRouter);
-app.use('/api/user', routerUser);
-app.use('/api/location', LocationRoutes);a
+// app.use('/api/user', routerUser); // OJO: Tienes '/api/user' duplicado arriba. Comenta uno si es necesario.
+app.use('/api/user-v2', routerUser); // Sugerencia: Si son rutas distintas, usa otro path.
+app.use('/api/location', LocationRoutes);
 app.use('/api/crud_create', CreateRoutes);
 app.use('/api/crud_read', ReadRoutes);
 app.use('/api/crud_update', UpdateRoutes);
 app.use('/api/crud_read', GetScheduleRoutes);
 
-export const registerRoutes = (app: express.Application) => {
-  app.use('/devices', deviceRouter);
-};
+// Ruta de devices integrada (reemplaza a la función registerRoutes que fallaba)
+app.use('/devices', deviceRouter);
 
 // Middleware para manejar 404 (Not Found)
 app.use((req, res) => {
