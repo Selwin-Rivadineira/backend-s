@@ -11,7 +11,7 @@ import jobOfertRoutes from './api/routes/jobOfert.routes';
 import newoffersRoutes from './api/routes/newOffers.routes';
 import fixerRoutes from './api/routes/fixer.routes';
 import jobsRoutes from './api/routes/jobs.routes';
-import activityRoutes from '../src/api/routes/activities.routes';
+import activityRoutes from './api/routes/activities.routes'; // Corregido path relativo
 import CreateRoutes from './api/routes/create_appointment.routes';
 import ReadRoutes from './api/routes/read_appointment.routes';
 import UpdateRoutes from './api/routes/update_appointment.routes';
@@ -22,24 +22,23 @@ import trackingRoutes from './api/routes/tracking-appointments.routes';
 import experienceRoutes from './routes/experience.routes';
 import userProfileRoutes from './routes/userProfile.routes';
 import userRoutes from './routes/user.routes';
-import registrarDatosRouter from '../src/api/routes/userManagement/registrarDatos.routes';
-import fotoPerfilRouter from '../src/api/routes/userManagement/fotoPerfil.routes';
-import googleRouter from '../src/api/routes/userManagement/google.routes';
-import ubicacionRouter from '../src/api/routes/userManagement/ubicacion.routes';
-import authRouter from '../src/api/routes/userManagement/login.routes';
-import modificarDatosRouter from '../src/api/routes/userManagement/modificarDatos.routes';
-import nominatimRouter from '../src/api/routes/userManagement/sugerencias.routes';
-import deviceRouter from '../src/api/routes/userManagement/device.routes';
-import cambiarContrasenaRouter from '../src/api/routes/userManagement/editarContraseña.routes';
-import cerrarSesionesRouter from '../src/api/routes/userManagement/cerrarSesiones.routes';
-import ultimoCambioRouter from '../src/api/routes/userManagement/ultimoCambio.routes';
-import githubAuthRouter from '../src/api/routes/userManagement/github.routes';
-import discordRoutes from '../src/api/routes/userManagement/discord.routes';
-import clienteRouter from '../src/api/routes/userManagement/cliente.routes';
-import obtenerContrasenaRouter from '../src/api/routes/userManagement/obtener.routes';
-import portfolioRoutes from '../src/routes/portfolio.routes';
-import routerUser from './api/routes/user.routes';
-// import Search from './models/search.model'; // No se usa y puede causar warnings
+import registrarDatosRouter from './api/routes/userManagement/registrarDatos.routes'; // Corregido path relativo
+import fotoPerfilRouter from './api/routes/userManagement/fotoPerfil.routes'; // Corregido path relativo
+import googleRouter from './api/routes/userManagement/google.routes'; // Corregido path relativo
+import ubicacionRouter from './api/routes/userManagement/ubicacion.routes'; // Corregido path relativo
+import authRouter from './api/routes/userManagement/login.routes'; // Corregido path relativo
+import modificarDatosRouter from './api/routes/userManagement/modificarDatos.routes'; // Corregido path relativo
+import nominatimRouter from './api/routes/userManagement/sugerencias.routes'; // Corregido path relativo
+import deviceRouter from './api/routes/userManagement/device.routes'; // Corregido path relativo
+import cambiarContrasenaRouter from './api/routes/userManagement/editarContraseña.routes'; // Corregido path relativo
+import cerrarSesionesRouter from './api/routes/userManagement/cerrarSesiones.routes'; // Corregido path relativo
+import ultimoCambioRouter from './api/routes/userManagement/ultimoCambio.routes'; // Corregido path relativo
+import githubAuthRouter from './api/routes/userManagement/github.routes'; // Corregido path relativo
+import discordRoutes from './api/routes/userManagement/discord.routes'; // Corregido path relativo
+import clienteRouter from './api/routes/userManagement/cliente.routes'; // Corregido path relativo
+import obtenerContrasenaRouter from './api/routes/userManagement/obtener.routes'; // Corregido path relativo
+import portfolioRoutes from './routes/portfolio.routes'; // Corregido path relativo
+import routerUser from './api/routes/user.routes'; // Corregido path relativo
 
 const app = express();
 
@@ -117,7 +116,7 @@ app.use('/api/crud_read', ReadRoutes);
 app.use('/api/crud_update', UpdateRoutes);
 app.use('/api/crud_read', GetScheduleRoutes);
 
-// Ruta de devices integrada (reemplaza a la función registerRoutes que fallaba)
+// Ruta de devices integrada
 app.use('/devices', deviceRouter);
 
 // Middleware para manejar 404 (Not Found)
