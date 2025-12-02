@@ -4,7 +4,7 @@ dotenv.config({ path: '.env' });
 import express from 'express';
 import cors from 'cors';
 import { connectDatabase } from './config/db.config';
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'; // <--- FIX 1: Importar mongoose
 
 import jobOfertRoutes from './api/routes/jobOfert.routes';
 import newoffersRoutes from './api/routes/newOffers.routes';
@@ -59,11 +59,34 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// --- FIX 1: RUTAS BASE PARA TESTING Y HEALTHCHECK ---
+app.get('/', (req, res) => {
+  // Usamos mongoose.connection.readyState para verificar el estado de la DB
+  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    message: 'Servineo API',
+    status: 'running',
+    database: dbStatus
+  });
+});
+
+app.get('/api/health', (req, res) => {
+  const dbStatus = (mongoose as any).connection?.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    status: 'ok',
+    database: dbStatus,
+    timestamp: new Date().toISOString()
+  });
+});
+// ---------------------------------------------------
+
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
 });
 
+// -- Rutas de la aplicación --
 app.use('/api', searchRoutes);
 app.use('/api/devmaster', jobOfertRoutes);
 app.use('/api/newOffers', newoffersRoutes);
@@ -100,6 +123,7 @@ export const registerRoutes = (app: express.Application) => {
   app.use('/devices', deviceRouter);
 };
 
+// Middleware para manejar 404 (Not Found)
 app.use((req, res) => {
   console.log('Not found:', req.method, req.originalUrl);
   res.status(404).send({
