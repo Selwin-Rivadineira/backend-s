@@ -1,4 +1,3 @@
-
 import nodemailer from 'nodemailer';
 import { ENV } from '../../config/env.config';
 
@@ -6,27 +5,27 @@ export class EmailProvider {
   private transporter: nodemailer.Transporter | null = null;
 
   constructor() {
-    // Validamos que las variables de entorno existan
-    if (!ENV.SMTP_USER || !ENV.SMTP_PASSWORD) {
-      console.error('Error: Faltan variables de entorno SMTP_USER o SMTP_PASSWORD');
-      throw new Error('Configuración SMTP incompleta'); // Lanzar error en vez de return
+    // Validamos que las variables de NOTIFICACIÓN existan
+    if (!ENV.SMTP_USER_NOT || !ENV.SMTP_PASSWORD_NOT) {
+      console.error('Error: Faltan variables de entorno SMTP_USER_NOT o SMTP_PASSWORD_NOT');
+      throw new Error('Configuración SMTP de Notificación incompleta'); 
     }
 
-    // 1. Configuramos el "transporter" de Nodemailer
+    // 1. Configuramos el "transporter" usando las credenciales NOT
     this.transporter = nodemailer.createTransport({
-      host: ENV.SMTP_HOST,
-      port: ENV.SMTP_PORT,
-      secure: ENV.SMTP_SECURE, // false para puerto 587 (STARTTLS)
+      host: ENV.SMTP_NOT_HOST,
+      port: ENV.SMTP_NOT_PORT,
+      secure: ENV.SMTP_NOT_SECURE,
       auth: {
-        user: ENV.SMTP_USER,
-        pass: ENV.SMTP_PASSWORD,
+        user: ENV.SMTP_USER_NOT,
+        pass: ENV.SMTP_PASSWORD_NOT,
       },
     });
 
     this.verifyConnection();
   }
 
-  // 2. Verificamos la conexión al iniciar
+  // 2. Verificamos la conexión al iniciar (sin cambios en la lógica interna)
   private async verifyConnection() {
     try {
       if (this.transporter) {
@@ -46,7 +45,8 @@ export class EmailProvider {
     
     try {
       const mailOptions = {
-        from: `"Servineo" <${ENV.SMTP_FROM}>`, 
+        // Usamos el remitente de NOTIFICACIONES
+        from: `"Servineo" <${ENV.SMTP_FROM_NOT}>`, 
         to: to,
         subject: subject,
         html: htmlBody,
@@ -58,7 +58,7 @@ export class EmailProvider {
 
     } catch (error) {
       console.error('❌ Error al enviar el correo:', error);
-      throw error; // Propagar el error original para mejor debugging
+      throw error;
     }
   }
 }
